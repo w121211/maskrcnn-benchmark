@@ -169,10 +169,9 @@ class COCODemo(object):
                 of the detection properties can be found in the fields of
                 the BoxList via `prediction.fields()`
         """
-        print('start')
         predictions = self.compute_prediction(image)
-        print('predictions', predictions)
         top_predictions = self.select_top_predictions(predictions)
+        print(top_predictions)
 
         result = image.copy()
         if self.show_mask_heatmaps:
@@ -205,7 +204,6 @@ class COCODemo(object):
         # compute predictions
         with torch.no_grad():
             predictions = self.model(image_list)
-        print('predictions...')
         predictions = [o.to(self.cpu_device) for o in predictions]
 
         # always single image is passed at a time
@@ -238,7 +236,9 @@ class COCODemo(object):
                 of the detection properties can be found in the fields of
                 the BoxList via `prediction.fields()`
         """
+        print(predictions)
         scores = predictions.get_field("scores")
+        print(scores)
         keep = torch.nonzero(scores > self.confidence_threshold).squeeze(1)
         predictions = predictions[keep]
         scores = predictions.get_field("scores")
@@ -435,3 +435,21 @@ def vis_keypoints(img, kps, kp_thresh=2, alpha=0.7):
 
     # Blend the keypoints.
     return cv2.addWeighted(img, 1.0 - alpha, kp_mask, alpha, 0)
+
+
+if __name__ == "__main__":
+    from maskrcnn_benchmark.config import cfg
+
+    # config_file = "../configs/e2e_mask_rcnn_R_50_C4_1x.yaml"
+    config_file = "./configs/e2e_mask_rcnn_R_50_C4_1x.yaml"
+
+    # update the config options with the config file
+    cfg.merge_from_file(config_file)
+    # manual override some options
+    cfg.merge_from_list(["MODEL.DEVICE", "cpu"])
+
+    coco_demo = COCODemo(
+        cfg,
+        min_image_size=800,
+        confidence_threshold=0.7,
+    )

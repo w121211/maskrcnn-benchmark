@@ -30,7 +30,7 @@ from maskrcnn_benchmark.utils.miscellaneous import mkdir
 try:
     from apex import amp
 except ImportError:
-    raise ImportError('Use APEX for multi-precision via apex.amp')
+    raise ImportError("Use APEX for multi-precision via apex.amp")
 
 
 def train(cfg, local_rank, distributed):
@@ -43,12 +43,14 @@ def train(cfg, local_rank, distributed):
 
     # Initialize mixed-precision training
     use_mixed_precision = cfg.DTYPE == "float16"
-    amp_opt_level = 'O1' if use_mixed_precision else 'O0'
+    amp_opt_level = "O1" if use_mixed_precision else "O0"
     model, optimizer = amp.initialize(model, optimizer, opt_level=amp_opt_level)
 
     if distributed:
         model = torch.nn.parallel.DistributedDataParallel(
-            model, device_ids=[local_rank], output_device=local_rank,
+            model,
+            device_ids=[local_rank],
+            output_device=local_rank,
             # this should be removed if we update BatchNorm stats
             broadcast_buffers=False,
         )
@@ -89,6 +91,7 @@ def train(cfg, local_rank, distributed):
 
 
 def run_test(cfg, model, distributed):
+    print("jaoisdjiosajdoi")
     if distributed:
         model = model.module
     torch.cuda.empty_cache()  # TODO check if it helps
@@ -105,7 +108,9 @@ def run_test(cfg, model, distributed):
             mkdir(output_folder)
             output_folders[idx] = output_folder
     data_loaders_val = make_data_loader(cfg, is_train=False, is_distributed=distributed)
-    for output_folder, dataset_name, data_loader_val in zip(output_folders, dataset_names, data_loaders_val):
+    for output_folder, dataset_name, data_loader_val in zip(
+        output_folders, dataset_names, data_loaders_val
+    ):
         inference(
             model,
             data_loader_val,
@@ -150,9 +155,7 @@ def main():
 
     if args.distributed:
         torch.cuda.set_device(args.local_rank)
-        torch.distributed.init_process_group(
-            backend="nccl", init_method="env://"
-        )
+        torch.distributed.init_process_group(backend="nccl", init_method="env://")
         synchronize()
 
     cfg.merge_from_file(args.config_file)
@@ -182,5 +185,55 @@ def main():
         run_test(cfg, model, args.distributed)
 
 
+def debug():
+    parser = argparse.ArgumentParser(description="PyTorch Object Detection Training")
+    parser.add_argument(
+        "--config-file",
+        default="",
+        metavar="FILE",
+        help="path to config file",
+        type=str,
+    )
+    parser.add_argument("--local_rank", type=int, default=0)
+    parser.add_argument(
+        "--skip-test",
+        dest="skip_test",
+        help="Do not test the final model",
+        action="store_true",
+    )
+    parser.add_argument(
+        "opts",
+        help="Modify config options using the command-line",
+        default=None,
+        nargs=argparse.REMAINDER,
+    )
+
+    args = parser.parse_args()
+
+    num_gpus = int(os.environ["WORLD_SIZE"]) if "WORLD_SIZE" in os.environ else 1
+    args.distributed = num_gpus > 1
+
+    if args.distributed:
+        torch.cuda.set_device(args.local_rank)
+        torch.distributed.init_process_group(backend="nccl", init_method="env://")
+        synchronize()
+
+    cfg.merge_from_file(args.config_file)
+    cfg.merge_from_list(args.opts)
+    cfg.freeze()
+
+    output_dir = cfg.OUTPUT_DIR
+    if output_dir:
+        mkdir(output_dir)
+
+    model = build_detection_model(cfg)
+    device = torch.device(cfg.MODEL.DEVICE)
+    model.to(device)
+
+    if not args.skip_test:
+        run_test(cfg, model, args.distributed)
+
+
 if __name__ == "__main__":
-    main()
+    # main()
+    debug()

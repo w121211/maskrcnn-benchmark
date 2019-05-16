@@ -31,6 +31,9 @@ ENV CONDA_AUTO_UPDATE_CONDA=false
 RUN conda install -y ipython
 RUN pip install ninja yacs cython matplotlib opencv-python tqdm
 
+# Install fork requirements
+RUN pip install git+git://github.com/waspinator/pycococreator.git@0.2.0
+
 # Install PyTorch 1.0 Nightly
 ARG CUDA
 RUN conda install pytorch-nightly cudatoolkit=${CUDA} -c pytorch \
@@ -51,11 +54,12 @@ RUN git clone https://github.com/NVIDIA/apex.git \
  && cd apex \
  && python setup.py install --cuda_ext --cpp_ext
 
+
 # install PyTorch Detection
-ARG FORCE_CUDA="1"
-ENV FORCE_CUDA=${FORCE_CUDA}
-RUN git clone https://github.com/facebookresearch/maskrcnn-benchmark.git \
- && cd maskrcnn-benchmark \
- && python setup.py build develop
+#ARG FORCE_CUDA="1"
+#ENV FORCE_CUDA=${FORCE_CUDA}
+#RUN git clone https://github.com/facebookresearch/maskrcnn-benchmark.git \
+# && cd maskrcnn-benchmark \
+# && python setup.py build develop
 
 WORKDIR /maskrcnn-benchmark

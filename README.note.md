@@ -1,9 +1,31 @@
+# Docker setup
+
 ```bash
-$ docker build -t pt-maskrcnn .
+$ sudo docker build -t maskrcnn-benchmark-jupyter .
 $ sudo docker run --runtime=nvidia -d -it \
-    --name=ptm \
-    -v=$(pwd):/maskrcnn-benchmark \
-    --ipc=host \
-    pt-maskrcnn
-$ docker exec -it ptm /bin/bash
+    --name=maskrcnn \
+    -v=$(pwd):/notebooks/maskrcnn-benchmark \
+    -p=8888:8888 \
+    --ipc="host" \
+    maskrcnn-benchmark-jupyter
+$ sudo docker logs maskrcnn
+$ sudo docker start maskrcnn
+$ sudo docker exec -it maskrcnn /bin/bash
 ```
+
+- Open Jupyter notebook via [http://192.168.0.102:8888]
+
+# Run
+
+```bash
+pip install -e .  # install current package
+
+python tools/train_net.py --config-file "my_dataset/e2e_faster_rcnn_R_50_FPN_1x.yaml" SOLVER.IMS_PER_BATCH 2 SOLVER.BASE_LR 0.0025 SOLVER.MAX_ITER 720000 SOLVER.STEPS "(480000, 640000)" TEST.IMS_PER_BATCH 1
+
+python tools/train_net.py --config-file "my_dataset/e2e_faster_rcnn_R_50_FPN_1x.yaml" SOLVER.IMS_PER_BATCH 4 SOLVER.BASE_LR 0.005 SOLVER.MAX_ITER 360000 SOLVER.STEPS "(240000, 320000)" TEST.IMS_PER_BATCH 1
+
+python tools/train_net.py --config-file "configs/e2e_mask_rcnn_R_50_C4_1x.yaml" SOLVER.IMS_PER_BATCH 2 SOLVER.BASE_LR 0.0025 SOLVER.MAX_ITER 720000 SOLVER.STEPS "(480000, 640000)" TEST.IMS_PER_BATCH 1
+
+```
+
+#

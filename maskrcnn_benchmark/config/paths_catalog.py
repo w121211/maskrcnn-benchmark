@@ -5,8 +5,19 @@ import os
 
 
 class DatasetCatalog(object):
-    DATA_DIR = "datasets"
+    # DATA_DIR = "datasets"
+    DATA_DIR = "my_dataset"
     DATASETS = {
+        # my dataset
+        "coco_post_train": {
+            "img_dir": "train/images",
+            "ann_file": "train/instances_post_train2018.json"
+        },
+        "coco_post_val": {
+            "img_dir": "val/images",
+            "ann_file": "val/instances_post_train2018.json"
+        },
+        # ------------------------------
         "coco_2017_train": {
             "img_dir": "coco/train2017",
             "ann_file": "coco/annotations/instances_train2017.json"

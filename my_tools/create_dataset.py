@@ -7,12 +7,11 @@ import numpy as np
 from PIL import Image
 from pycococreatortools import pycococreatortools
 
-PROJECT_ROOT = os.path.join(os.getcwd(), os.pardir)
-ROOT_DIR = os.path.join(PROJECT_ROOT, 'my_dataset/test')
-IMAGE_DIR = os.path.join(ROOT_DIR, "train")
+# PROJECT_ROOT = os.path.join(os.getcwd(), os.pardir)
+PROJECT_ROOT = os.path.join(os.getcwd())
+ROOT_DIR = os.path.join(PROJECT_ROOT, "my_dataset/val")
+IMAGE_DIR = os.path.join(ROOT_DIR, "images")
 ANNOTATION_DIR = os.path.join(ROOT_DIR, "annotations")
-
-print(ROOT_DIR)
 
 INFO = {
     "description": "Example Dataset",
@@ -20,23 +19,20 @@ INFO = {
     "version": "0.1.0",
     "year": 2018,
     "contributor": "waspinator",
-    "date_created": datetime.datetime.utcnow().isoformat(' ')
+    "date_created": datetime.datetime.utcnow().isoformat(" "),
 }
 
 LICENSES = [
     {
         "id": 1,
         "name": "Attribution-NonCommercial-ShareAlike License",
-        "url": "http://creativecommons.org/licenses/by-nc-sa/2.0/"
+        "url": "http://creativecommons.org/licenses/by-nc-sa/2.0/",
     }
 ]
 
 CATEGORIES = [
-    {
-        'id': 1,
-        'name': 'char',
-        'supercategory': 'shape',
-    },
+    {"id": 1, "name": "text", "supercategory": "shape"},
+    # {"id": 2, "name": "char", "supercategory": "shape"},
     # {
     #     'id': 2,
     #     'name': 'circle',
@@ -50,10 +46,21 @@ CATEGORIES = [
 ]
 
 
+def png_to_jpg(root, files):
+    file_types = ["*.png"]
+    file_types = r"|".join([fnmatch.translate(x) for x in file_types])
+    files = [os.path.join(root, f) for f in files]
+    files = [f for f in files if re.match(file_types, f)]
+    print(files)
+
+    for path in files:
+        im = Image.open(path)
+        im.convert("RGB").save(path.replace(".png", ".jpg"))
+
+
 def filter_for_jpeg(root, files):
-    # file_types = ['*.jpeg', '*.jpg']
-    file_types = ['*.jpeg', '*.jpg', '*.png']
-    file_types = r'|'.join([fnmatch.translate(x) for x in file_types])
+    file_types = ["*.jpeg", "*.jpg", "*.png"]
+    file_types = r"|".join([fnmatch.translate(x) for x in file_types])
     files = [os.path.join(root, f) for f in files]
     files = [f for f in files if re.match(file_types, f)]
 
@@ -61,20 +68,23 @@ def filter_for_jpeg(root, files):
 
 
 def filter_for_annotations(root, files, image_filename):
-    file_types = ['*.png']
-    file_types = r'|'.join([fnmatch.translate(x) for x in file_types])
+    file_types = ["*.png"]
+    file_types = r"|".join([fnmatch.translate(x) for x in file_types])
     basename_no_extension = os.path.splitext(os.path.basename(image_filename))[0]
-    file_name_prefix = basename_no_extension + '.*'
+    file_name_prefix = basename_no_extension + ".*"
     files = [os.path.join(root, f) for f in files]
     files = [f for f in files if re.match(file_types, f)]
-    files = [f for f in files if re.match(file_name_prefix, os.path.splitext(os.path.basename(f))[0])]
-
+    files = [
+        f
+        for f in files
+        if re.match(file_name_prefix, os.path.splitext(os.path.basename(f))[0])
+    ]
     return files
 
 
 def png_to_binary_mask(fpath: str) -> np.array:
     im = Image.open(fpath)
-    bw = Image.new('1', im.size)
+    bw = Image.new("1", im.size)
     pixels = im.load()
     pixels_bw = bw.load()
 
@@ -95,7 +105,7 @@ def main():
         "licenses": LICENSES,
         "categories": CATEGORIES,
         "images": [],
-        "annotations": []
+        "annotations": [],
     }
 
     image_id = 1
@@ -103,13 +113,15 @@ def main():
 
     # filter for jpeg images
     for root, _, files in os.walk(IMAGE_DIR):
+        # png_to_jpg(root, files)
         image_files = filter_for_jpeg(root, files)
 
         # go through each image
         for image_filename in image_files:
             image = Image.open(image_filename)
             image_info = pycococreatortools.create_image_info(
-                image_id, os.path.basename(image_filename), image.size)
+                image_id, os.path.basename(image_filename), image.size
+            )
             coco_output["images"].append(image_info)
 
             # filter for associated png annotations
@@ -119,20 +131,28 @@ def main():
                 # go through each associated annotation
                 for annotation_filename in annotation_files:
                     print(annotation_filename)
-                    class_id = [x['id'] for x in CATEGORIES if x['name'] in annotation_filename][0]
+                    class_id = [
+                        x["id"] for x in CATEGORIES if x["name"] in annotation_filename
+                    ][0]
 
-                    # category_info = {'id': class_id, 'is_crowd': 'crowd' in image_filename}
-                    category_info = {'id': class_id, 'is_crowd': True}
+                    category_info = {
+                        "id": class_id,
+                        "is_crowd": "crowd" in image_filename,
+                    }
+                    # category_info = {'id': class_id, 'is_crowd': True}
                     binary_mask = png_to_binary_mask(annotation_filename)
 
                     # print(image_id, category_info, binary_mask)
-
                     annotation_info = pycococreatortools.create_annotation_info(
-                        segmentation_id, image_id, category_info, binary_mask,
-                        image.size, tolerance=2)
+                        segmentation_id,
+                        image_id,
+                        category_info,
+                        binary_mask,
+                        image.size,
+                        tolerance=2,
+                    )
 
                     # print(annotation_info)
-
                     if annotation_info is not None:
                         coco_output["annotations"].append(annotation_info)
 
@@ -140,7 +160,9 @@ def main():
 
             image_id = image_id + 1
 
-    with open('{}/instances_shape_train2018.json'.format(ROOT_DIR), 'w') as output_json_file:
+    with open(
+        "{}/instances_post_train2018.json".format(ROOT_DIR), "w"
+    ) as output_json_file:
         json.dump(coco_output, output_json_file)
 
 

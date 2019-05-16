@@ -29,3 +29,6 @@ dist/
 /datasets
 /models
 /output
+
+/runs
+/my_dataset
