@@ -171,7 +171,7 @@ class COCODemo(object):
         """
         predictions = self.compute_prediction(image)
         top_predictions = self.select_top_predictions(predictions)
-        print(top_predictions)
+        # print(top_predictions)
 
         result = image.copy()
         if self.show_mask_heatmaps:
@@ -236,9 +236,9 @@ class COCODemo(object):
                 of the detection properties can be found in the fields of
                 the BoxList via `prediction.fields()`
         """
-        print(predictions)
+        # print(predictions)
         scores = predictions.get_field("scores")
-        print(scores)
+        # print(scores)
         keep = torch.nonzero(scores > self.confidence_threshold).squeeze(1)
         predictions = predictions[keep]
         scores = predictions.get_field("scores")
