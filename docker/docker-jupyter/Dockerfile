@@ -1,4 +1,4 @@
-ARG CUDA="10.1"
+ARG CUDA="10.0"
 ARG CUDNN="7"
 
 FROM nvidia/cuda:${CUDA}-cudnn${CUDNN}-devel-ubuntu16.04

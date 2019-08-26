@@ -7,8 +7,8 @@ dataset = COCODataset(
     True,
 )
 
-boxlist = dataset[0][1]
-print(boxlist.bbox)
+# boxlist = dataset[0]
+# print(boxlist.bbox)
 
-boxlist = dataset[1][1]
-print(boxlist.bbox)
+# boxlist = dataset[1][1]
+# print(boxlist.bbox)

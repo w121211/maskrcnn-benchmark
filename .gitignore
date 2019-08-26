@@ -6,6 +6,7 @@ _ext
 maskrcnn_benchmark.egg-info/
 build/
 dist/
+.DS_Store
 
 # pytorch/python/numpy formats
 *.pth
@@ -13,7 +14,6 @@ dist/
 *.npy
 
 # ipython/jupyter notebooks
-*.ipynb
 **/.ipynb_checkpoints/
 
 # Editor temporaries
