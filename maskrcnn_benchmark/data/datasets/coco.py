@@ -56,6 +56,8 @@ class COCODataset(torchvision.datasets.coco.CocoDetection):
                     ids.append(img_id)
             self.ids = ids
 
+        self.categories = {cat['id']: cat['name'] for cat in self.coco.cats.values()}
+
         self.json_category_id_to_contiguous_id = {
             v: i + 1 for i, v in enumerate(self.coco.getCatIds())
         }
@@ -83,14 +85,10 @@ class COCODataset(torchvision.datasets.coco.CocoDetection):
         classes = torch.tensor(classes)
         target.add_field("labels", classes)
 
-        # masks = [obj["segmentation"] for obj in anno]
-        # masks = SegmentationMask(masks, img.size, mode="poly")
-        masks = [
-            mask_utils.frPyObjects(obj["segmentation"], obj["width"], obj["height"])
-            for obj in anno
-        ]
-        masks = SegmentationMask(masks, img.size, mode="mask")
-        target.add_field("masks", masks)
+        if anno and "segmentation" in anno[0]:
+            masks = [obj["segmentation"] for obj in anno]
+            masks = SegmentationMask(masks, img.size, mode='poly')
+            target.add_field("masks", masks)
 
         if anno and "keypoints" in anno[0]:
             keypoints = [obj["keypoints"] for obj in anno]

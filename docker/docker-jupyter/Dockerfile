@@ -28,12 +28,14 @@ ENV PATH=$CONDA_PREFIX/bin:$PATH
 ENV CONDA_AUTO_UPDATE_CONDA=false
 
 RUN conda install -y ipython
-RUN pip install ninja yacs cython matplotlib jupyter git+git://github.com/waspinator/pycococreator.git@0.2.0 \
-    requests tqdm
+RUN pip install requests ninja yacs cython matplotlib jupyter tqdm
 
-# Install PyTorch 1.0 Nightly and OpenCV
-RUN conda install -y pytorch-nightly -c pytorch \
-    && conda install -y opencv -c menpo \
+# Install PyTorch Nightly
+ARG CUDA
+RUN conda install -y pytorch-nightly cudatoolkit=${CUDA} -c pytorch
+
+# Install OpenCV
+RUN conda install -y opencv -c menpo \
     && conda clean -ya
 
 WORKDIR /root
@@ -59,10 +61,17 @@ RUN git clone https://github.com/NVIDIA/apex.git \
     && cd apex \
     && python setup.py install --cuda_ext --cpp_ext
 
+# install apex
+RUN git clone https://github.com/NVIDIA/apex.git \
+    && cd apex \
+    && python setup.py install --cuda_ext --cpp_ext
+
 # install PyTorch Detection
-#RUN git clone https://github.com/facebookresearch/maskrcnn-benchmark.git \
-# && cd maskrcnn-benchmark \
-# && python setup.py build develop
+ARG FORCE_CUDA="1"
+ENV FORCE_CUDA=${FORCE_CUDA}
+RUN git clone https://github.com/facebookresearch/maskrcnn-benchmark.git \
+    && cd maskrcnn-benchmark \
+    && python setup.py build develop
 
 RUN jupyter notebook --generate-config
 

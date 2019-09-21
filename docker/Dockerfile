@@ -29,7 +29,7 @@ ENV PATH=$CONDA_PREFIX/bin:$PATH
 ENV CONDA_AUTO_UPDATE_CONDA=false
 
 RUN conda install -y ipython
-RUN pip install ninja yacs cython matplotlib opencv-python tqdm
+RUN pip install requests ninja yacs cython matplotlib opencv-python tqdm
 
 # Install fork requirements
 RUN pip install git+git://github.com/waspinator/pycococreator.git@0.2.0

@@ -56,11 +56,13 @@ def do_train(
     start_training_time = time.time()
     end = time.time()
     for iteration, (images, targets, _) in enumerate(data_loader, start_iter):
+        
+        if any(len(target) < 1 for target in targets):
+            logger.error(f"Iteration={iteration + 1} || Image Ids used for training {_} || targets Length={[len(target) for target in targets]}" )
+            continue
         data_time = time.time() - end
         iteration = iteration + 1
         arguments["iteration"] = iteration
-
-        scheduler.step()
 
         images = images.to(device)
         targets = [target.to(device) for target in targets]
@@ -81,6 +83,7 @@ def do_train(
         with amp.scale_loss(losses, optimizer) as scaled_losses:
             scaled_losses.backward()
         optimizer.step()
+        scheduler.step()
 
         batch_time = time.time() - end
         end = time.time()
