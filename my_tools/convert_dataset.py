@@ -31,9 +31,9 @@ LICENSES = [
 ]
 
 CATEGORIES = [
-    {"id": 1, "name": "rectangle", "supercategory": "shape"},
-    {"id": 2, "name": "text", "supercategory": "shape"},
-    {"id": 3, "name": "token", "supercategory": "shape"},
+    {"id": 1, "name": "Rectangle", "supercategory": "shape"},
+    {"id": 2, "name": "Text", "supercategory": "shape"},
+    {"id": 3, "name": "Background", "supercategory": "shape"},
 ]
 
 
